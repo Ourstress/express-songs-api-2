@@ -1,29 +1,56 @@
+// add Joi
+const Joi = require('joi')
 const express = require('express');
 const router = express.Router();
 
 let songs = [];
 
-//Song API
-//return list of all songs
 router.get('/', (req, res, next) => {
     res.status(200).json(songs);
 });
 
-//create a new song, and return new song
 router.post('/', (req, res) => {
-    if (req.body){
-        let newSong = {
-            id: songs.length + 1,
-            name: req.body.name,
-            artist: req.body.artist 
-        }
-        songs.push(newSong);
-        res.status(201).json(newSong);
-    }
-    next(new Error("Unable to create song"))
-});
+//create schema
+    // name: is string, is required, min 2 chars long
+    // artist: is string, is required, min 4 chars long
 
-//return a song with id 
+    const schema = Joi.object().keys({
+        name:Joi.string().min(2).max(10).required(),
+        artist:Joi.string().min(4).max(20).required()
+    })
+// Check that req.body is valid with Joi
+
+Joi.validate(req.body, schema, function(err){
+    if(err){
+        res.status(422).json({
+            status: "error",
+            message: "invalid request data",
+            data: req.body
+        })
+    }
+    else {
+        if (req.body){
+            let newSong = {
+                id: songs.length + 1,
+                name: req.body.name,
+                artist: req.body.artist 
+            }
+            songs.push(newSong);
+            res.status(201).json({
+                status: "success",
+                message: "created user successfully",
+                data: req.body
+            })
+        }
+        next(new Error("Unable to create song"))
+    }
+})
+})
+
+// if valid continue to create song
+
+// if not valid return 400 with error message from Joi validation result
+
 router.get('/:id', (req, res, next) => {
 
     let song = songs.find(song => song.id == parseInt(req.params.id));
@@ -33,7 +60,6 @@ router.get('/:id', (req, res, next) => {
     next(new Error(`Unable to find song with id: ${req.params.id}`))
 });
 
-//update a song with id, and return edited song
 router.put('/:id', (req, res, next) => {
     let song = songs.find(song => song.id === parseInt(req.params.id));
     if (song) {

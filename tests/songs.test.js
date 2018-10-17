@@ -15,6 +15,19 @@ describe("routes/songs", () => {
       expect(response.body).toMatchObject(requestBody);
     });
   });
+
+  it("POST /songs invalid name should return status 422", () => {
+    requestBody = { name: "t", artist: "rhianna"};
+    
+    return request(app)
+    .post("/songs")
+    .send(requestBody)
+    
+    .then(response => {
+      expect(response.status).toEqual(422);
+      expect(response.body).toMatchObject(requestBody);
+    });
+  });
   
   it("GET /songs should return a non empty array", () => {
     return request(app)
